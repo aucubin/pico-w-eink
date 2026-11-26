@@ -53,7 +53,7 @@ SENSOR_INTERVAL = 120      # Home Assistant polling (MQTT is push); HA values
 MIN_REDRAW_INTERVAL = 60   # minimum time between data-driven refreshes
 PAGE_TIMEOUT = 120         # return to the main page after this (0 = never)
 DEMO_INTERVAL = 300        # demo mode: how often sample values change
-FLIP_DISPLAY = False       # rotate 180°
+FLIP_DISPLAY = True        # rotated 180° (default); False = Waveshare orientation
 PARTIAL_REFRESH = True     # fast, flicker-free page flips (False = always full)
 FULL_REFRESH_EVERY = 5     # every Nth page flip is a full refresh to clear
                            # ghosting (1 = every flip is full)

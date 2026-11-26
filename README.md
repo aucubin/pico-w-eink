@@ -80,7 +80,7 @@ SENSORS = [
   
   A broken `config.py` shows its error on the display instead.
 * **Time.** Time comes from NTP, and the timezone comes from Open-Meteo (`timezone=auto`).
-* **Orientation.** If the picture is upside down for your mounting, set `FLIP_DISPLAY = True`.
+* **Orientation.** The picture is rotated 180° by default (`FLIP_DISPLAY = True`), also without a `config.py`. Set `FLIP_DISPLAY = False` for the orientation of Waveshare's examples.
 
 ## Layout
 

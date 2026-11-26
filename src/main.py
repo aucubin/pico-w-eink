@@ -91,7 +91,7 @@ class Watchdog:
 class App:
     def __init__(self, wd):
         self.wd = wd
-        self.epd = EPD(flip=C("FLIP_DISPLAY", False))
+        self.epd = EPD(flip=C("FLIP_DISPLAY", True))
         self.touch = Touch()
         self.has_weather = C("LATITUDE") is not None and C("LONGITUDE") is not None
         reason = self._demo_reason()
