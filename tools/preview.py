@@ -38,17 +38,17 @@ def save(path):
 for step in range(scenes):
     w = demo.weather(step, now)
     demo.tick(hub.sensors)
-    for page in range(ui.PAGES):
-        if page and step:  # forecast page only for the first scene
+    for page in range(3):
+        if page and step:  # forecast + setup pages only for the first scene
             continue
         st = {"page": page, "weather": w, "sensors": hub.sensors, "location": "Demo City",
-              "demo": True, "error": False, "now": now, "offset": 3600, "wind_unit": "km/h"}
+              "pages": 3, "demo": True, "error": False, "now": now, "offset": 3600, "wind_unit": "km/h"}
         ui.render(fb, st)
         save("%s/s%d_p%d.pbm" % (out, step, page))
 
 # edge cases: no weather + long location + unavailable value; single wide sensor; missing values
 st = {"page": 0, "weather": None, "sensors": hub.sensors[:1], "location": "A very long location name",
-      "demo": False, "error": True, "now": now, "offset": 0, "wind_unit": "km/h", "weather_hint": "WiFi failed"}
+      "pages": 2, "demo": False, "error": True, "now": now, "offset": 0, "wind_unit": "km/h", "weather_hint": "WiFi failed"}
 hub.sensors[0].set("unavailable")
 ui.render(fb, st)
 save("%s/edge_nodata.pbm" % out)

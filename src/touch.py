@@ -21,14 +21,31 @@ class Touch:
             time.sleep_ms(100)
             self.rst(1)
             time.sleep_ms(100)
-            self.ok = ADDR in self.i2c.scan()
             self.int.irq(trigger=Pin.IRQ_FALLING, handler=self._irq)
+            self.ok = self._probe()
         except Exception as e:
             print("touch: init failed", e)
-        print("touch:", "ok" if self.ok else "not found")
+        if not self.ok:
+            print("touch: not found yet, will retry on the next touch")
 
     def _irq(self, _pin):
         self._flag = True
+
+    def _probe(self):
+        """Detect the controller by reading its version register.
+
+        Don't use i2c.scan(): the ICNT86 often doesn't ACK the bare address
+        probe a scan sends (it then only shows up after it was accessed),
+        but it does answer real register reads.
+        """
+        for _ in range(3):
+            try:
+                v = self._read(0x000A, 4)
+                print("touch: ok, ICNT86 version", " ".join("%02x" % b for b in v))
+                return True
+            except OSError:
+                time.sleep_ms(50)
+        return False
 
     def _read(self, reg, n):
         self.i2c.writeto(ADDR, bytes((reg >> 8, reg & 0xFF)))
@@ -39,9 +56,13 @@ class Touch:
 
     def point(self):
         """Return raw (x, y) of the first touch point, or None."""
-        if not (self.ok and self._flag):
+        if not self._flag:
             return None
         self._flag = False
+        if not self.ok:  # not found at boot: the interrupt proves it's there now
+            self.ok = self._probe()
+            if not self.ok:
+                return None
         try:
             n = self._read(0x1001, 1)[0]
             if n == 0 or n > 5:

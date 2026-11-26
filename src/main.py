@@ -97,6 +97,7 @@ class App:
         reason = self._demo_reason()
         self.demo = reason is not None
         self.page = 0
+        self.pages = 3 if self.demo else 2  # demo mode adds the setup QR page
         self.page_since = None
         self.weather = None
         self.weather_ok_at = None  # ticks_ms of the last successful fetch
@@ -253,7 +254,7 @@ class App:
             elif self.weather_error:
                 hint = "fetch failed"
         return {
-            "page": self.page, "weather": self.weather, "sensors": self.hub.sensors,
+            "page": self.page, "pages": self.pages, "weather": self.weather, "sensors": self.hub.sensors,
             "location": C("LOCATION_NAME", "Demo City" if self.demo else ""),
             "demo": self.demo, "now": tu.now(), "offset": offset,
             "error": any(self.error_state()) or self.hub.error,
@@ -321,7 +322,7 @@ class App:
             self.wd.feed()
             self.update()
             if self.touch.tapped():
-                self.page = (self.page + 1) % ui.PAGES
+                self.page = (self.page + 1) % self.pages
                 self.page_since = time.ticks_ms()
                 self.draw(partial=True)
             elif self.page and page_timeout and since(self.page_since) > page_timeout:

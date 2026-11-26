@@ -4,7 +4,7 @@ import icons
 import timeutil as tu
 
 W, H = 296, 128
-PAGES = 2
+PAGE_NOW, PAGE_FORECAST, PAGE_SETUP = 0, 1, 2
 _COMPASS = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
 
 
@@ -17,15 +17,18 @@ def _pct(v):
 
 
 def render(fb, st):
-    """Draw a page. st keys: page, weather, sensors, location, demo, error,
-    now (unix time of the data/redraw), offset (s from UTC), wind_unit, and
-    optional weather_hint (2nd line under "No weather data")."""
+    """Draw a page. st keys: page, pages (count, for the indicator), weather,
+    sensors, location, demo, error, now (unix time of the data/redraw),
+    offset (s from UTC), wind_unit, and optional weather_hint (2nd line under
+    "No weather data")."""
     fb.fill(0)
     _header(fb, st)
-    if st["page"] == 0:
+    if st["page"] == PAGE_NOW:
         _page_now(fb, st)
-    else:
+    elif st["page"] == PAGE_FORECAST:
         _page_forecast(fb, st)
+    else:
+        _page_setup(fb)
 
 
 def message(fb, title, lines):
@@ -58,16 +61,23 @@ def _header(fb, st):
     rx = W - 2 - gfx.width(clock)
     gfx.text(fb, clock, rx, 2, 1, 0)
     # page indicator dots
-    for i in range(PAGES):
-        x = rx - 8 - (PAGES - i) * 6
+    pages = st["pages"]
+    for i in range(pages):
+        x = rx - 8 - (pages - i) * 6
         if i == st["page"]:
             fb.fill_rect(x, 4, 4, 4, 0)
         else:
             fb.rect(x, 4, 4, 4, 0)
-    title = st["location"] or "Weather"
-    if st["page"] == 1:
-        title += " forecast"
-    gfx.text(fb, gfx.fit(title, rx - 8 - PAGES * 6 - 8), 2, 2, 1, 0)
+    avail = rx - 8 - pages * 6 - 8
+    if st["page"] == PAGE_SETUP:
+        title = "Setup"
+    else:
+        title = st["location"] or "Weather"
+        if st["page"] == PAGE_FORECAST:
+            title += " forecast"
+            if gfx.width(title) > avail:
+                title = "Forecast"
+    gfx.text(fb, gfx.fit(title, avail), 2, 2, 1, 0)
 
 
 # --- page 0: current weather + sensors -------------------------------------
@@ -196,3 +206,39 @@ def _graph(fb, w, off, gx, gy, gw, gh):
         x = px(i)
         fb.vline(x, gy + gh, 3, 1)
         gfx.center(fb, "%02d" % tu.hour(t0 + i * 3600, off), x, gy + gh + 4)
+
+
+# --- page 2 (demo mode only): setup guide QR code ---------------------------
+_SETUP_TEXT = (
+    "Scan for the setup",
+    "guide or open",
+    "github.com/aucubin/",
+    "         pico-w-eink",
+    None,
+    "1. config.example.py",
+    "   -> config.py",
+    "2. set WiFi, location",
+    "   and SENSORS",
+    "3. mpremote cp config",
+    "   .py :config.py",
+)
+
+
+def _page_setup(fb):
+    import qr
+    scale = 3  # 29 modules -> 87 px, ~20 mm on the panel: easy to scan
+    size = qr.SIZE * scale
+    x0, y0 = 12, 13 + (H - 13 - size) // 2  # >= 4 white modules around it
+    for r, bits in enumerate(qr.ROWS):
+        y = y0 + r * scale
+        for c in range(qr.SIZE):
+            if bits >> (qr.SIZE - 1 - c) & 1:
+                fb.fill_rect(x0 + c * scale, y, scale, scale, 1)
+    tx = x0 + size + 12
+    y = 16
+    for line in _SETUP_TEXT:
+        if line is None:
+            y += 2
+            continue
+        gfx.text(fb, line, tx, y)
+        y += 11

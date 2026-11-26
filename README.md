@@ -6,7 +6,7 @@ MicroPython app for a **Raspberry Pi Pico W** plugged into the
 * Current weather and a 4-day forecast from [Open-Meteo](https://open-meteo.com) (no API key)
 * Up to 3 sensor values from **Home Assistant** (REST API) and/or **MQTT**
 * Tap the screen to switch between pages. It returns to the main page after `PAGE_TIMEOUT`.
-* **Demo mode** with sample data when nothing is configured (exact conditions at the top of `config.example.py`)
+* **Demo mode** with sample data when nothing is configured (exact conditions at the top of `config.example.py`). Demo mode adds a third page with a QR code linking to this repo for the setup steps.
 
 | Page 1: now + sensors | Page 2: forecast + 24 h graph |
 |---|---|
@@ -97,10 +97,12 @@ src/              files that go onto the Pico
   mqtt.py         minimal MQTT 3.1.1 subscriber
   net.py          WiFi, NTP, HTTP
   timeutil.py     Unix time, local time formatting, wrap-safe tick helper
+  qr.py           setup-guide QR code bitmap (generated)
   demo.py         sample data
 tools/
   preview.py      render pages to PBM files (MicroPython unix port)
   pbm2png.py      PBM files -> PNG contact sheet (CPython)
+  make_qr.py      regenerate src/qr.py for another URL (CPython + `pip install segno`)
 ```
 
 Preview the layouts without hardware (`brew install micropython`), from the repo root:
